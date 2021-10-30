@@ -1,10 +1,11 @@
 package BioScheduler;
 
-public class Slot {
+public class Slot implements Comparable<Slot>{
     int day;
     String startTime;
     String endTime;
     int preference;
+    Integer alreadyReplaced;
 
     public int getDay() {
         return day;
@@ -38,10 +39,27 @@ public class Slot {
         this.preference = preference;
     }
 
+    public Integer getAlreadyReplaced() {
+        return alreadyReplaced;
+    }
+
+    public void setAlreadyReplaced(Integer alreadyReplaced) {
+        this.alreadyReplaced = alreadyReplaced;
+    }
+
     @Override
     public String toString() {
-        return "day=" + day +
-                ", TimeSlot='" + startTime + '-' +
-                 endTime + '}';
+        return "Slot{" +
+                "day=" + day +
+                ", startTime='" + startTime + '\'' +
+                ", endTime='" + endTime + '\'' +
+                ", preference=" + preference +
+                ", alreadyReplaced=" + alreadyReplaced +
+                '}';
+    }
+
+    @Override
+    public int compareTo(Slot slot) {
+        return getStartTime().compareTo(slot.getStartTime());
     }
 }

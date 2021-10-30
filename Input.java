@@ -160,6 +160,7 @@ public class Input {
 
             ta.setAvailableSlot(availableSlots);
             ta.setPreferredSlot(preferredSlots);
+            ta.setTotalSlotsCount(availableSlots.size()+preferredSlots.size());
             taList.add(ta);
             availableSlots=new ArrayList<>();
             preferredSlots=new ArrayList<>();

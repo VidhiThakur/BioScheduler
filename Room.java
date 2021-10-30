@@ -30,10 +30,10 @@ public class Room implements Comparable<Room>{
 
     @Override
     public int compareTo(Room room) {
-        int timeCompare = getSlot().getStartTime().compareTo(room.getSlot().getStartTime());
-        if(timeCompare == 0) {
-            return getRoomNo().compareTo(room.getRoomNo());
+        int roomCompare = getRoomNo().compareTo(room.getRoomNo());
+        if(roomCompare == 0) {
+            return Integer.valueOf(getSlot().getStartTime()).compareTo(Integer.valueOf(room.getSlot().getStartTime()));
         }
-        return timeCompare;
+        return roomCompare;
     }
 }

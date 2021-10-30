@@ -2,7 +2,7 @@ package BioScheduler;
 
 import java.util.List;
 
-public class TeachingAssistant {
+public class TeachingAssistant implements Comparable<TeachingAssistant>{
     private String name;
     private Integer TAHours;
     private List<Slot> preferredSlot;
@@ -11,6 +11,7 @@ public class TeachingAssistant {
     private Boolean isSingleDayPossible;
     private Boolean areClassesAllotedInSingleDay;
     private Boolean dontChangeTheSchedule;
+    private Integer totalSlotsCount;
 
     public Boolean getDontChangeTheSchedule() {
         return dontChangeTheSchedule;
@@ -84,6 +85,14 @@ public class TeachingAssistant {
         isSingleDayPossible = singleDayPossible;
     }
 
+    public Integer getTotalSlotsCount() {
+        return totalSlotsCount;
+    }
+
+    public void setTotalSlotsCount(Integer totalSlotsCount) {
+        this.totalSlotsCount = totalSlotsCount;
+    }
+
     @Override
     public String toString() {
         return "TeachingAssistant{" +
@@ -93,6 +102,14 @@ public class TeachingAssistant {
                 ", availableSlot=" + availableSlot +
                 ", isMondayAvailable=" + isMondayAvailable +
                 ", isSingleDayPossible=" + isSingleDayPossible +
+                ", areClassesAllotedInSingleDay=" + areClassesAllotedInSingleDay +
+                ", dontChangeTheSchedule=" + dontChangeTheSchedule +
+                ", totalSlotsCount=" + totalSlotsCount +
                 '}';
+    }
+
+    @Override
+    public int compareTo(TeachingAssistant teachingAssistant) {
+        return getTotalSlotsCount().compareTo(teachingAssistant.getTotalSlotsCount());
     }
 }
