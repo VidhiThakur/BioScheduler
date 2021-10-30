@@ -48,7 +48,7 @@ public class SchedularService {
 
         if(!checkIfScheduleIsComplete()){
 
-            for(int i=0;i<40;i++) {
+            for(int i=0;i<30;i++) {
                 completeAndPrint();
             }
             //do something
@@ -145,7 +145,7 @@ public class SchedularService {
                                                 continue;
                                             }
                                             s.getRoom().getSlot().setAlreadyReplaced(slotReplacedCount + 1);
-//                                            entry.getValue().get(0).getTeachingAssistant().setDontChangeTheSchedule(true);
+                                           // entry.getValue().get(0).getTeachingAssistant().setDontChangeTheSchedule(true);
                                             s.setTeachingAssistant(entry.getValue().get(0).getTeachingAssistant());
                                             entry.getValue().add(s);
                                             e.getValue().remove(i);
@@ -193,8 +193,8 @@ public class SchedularService {
                                             else {
                                                 if (e.getValue().get(0).getTeachingAssistant().getDontChangeTheSchedule()
                                                         ||  e.getValue().size()==1
-                                                        )//|| e.getValue().get(0).getTeachingAssistant().getAreClassesAllotedInSingleDay()
-                                               // ) //e.getValue().get(i).getTeachingAssistant().getAreClassesAllotedInSingleDay())
+                                                        || e.getValue().get(0).getTeachingAssistant().getAreClassesAllotedInSingleDay()
+                                               ) //e.getValue().get(i).getTeachingAssistant().getAreClassesAllotedInSingleDay())
                                                     continue;
                                                 Schedule s = new Schedule();
                                                 s = e.getValue().get(i);
@@ -226,7 +226,7 @@ public class SchedularService {
                                                 }
 
                                                 s.getRoom().getSlot().setAlreadyReplaced(slotReplacedCount+1);
-//                                                entry.getValue().get(0).getTeachingAssistant().setDontChangeTheSchedule(true);
+                                                entry.getValue().get(0).getTeachingAssistant().setDontChangeTheSchedule(true);
                                                 s.setTeachingAssistant(entry.getValue().get(0).getTeachingAssistant());
                                                 entry.getValue().add(s);
                                                 e.getValue().remove(i);
@@ -390,26 +390,26 @@ return;
                                 if(!checkIfSlotInSequenceAndSingleDayPossible(taSchedules.get(taToCover.getName()),availableSlot)) {
                                     continue;
                                 }
+                            try {
+                                for (Map.Entry<String, List<Schedule>> e : taSchedules.entrySet()) {
+                                    if (taToCover.getTAHours() > allotedSlots)
+                                        for (int i = 0; i < e.getValue().size(); i++) {
+                                            if (e.getValue().get(i).getSlotPatternStr().endsWith(slotStr)) {
+                                                if (e.getValue().get(i).getTeachingAssistant().getName().equals(taToCover.getName()))
+                                                    break;
+                                                else {
+                                                    if (e.getValue().get(0).getTeachingAssistant().getDontChangeTheSchedule()
+                                                            || e.getValue().size() == 1
+                                                            || e.getValue().get(0).getTeachingAssistant().getAreClassesAllotedInSingleDay()
+                                                    ) //e.getValue().get(i).getTeachingAssistant().getAreClassesAllotedInSingleDay())
+                                                        continue;
+                                                    Schedule s = new Schedule();
+                                                    s = e.getValue().get(i);
 
-                            for (Map.Entry<String, List<Schedule>> e : taSchedules.entrySet()) {
-                                if (taToCover.getTAHours() > allotedSlots)
-                                    for (int i = 0; i < e.getValue().size(); i++) {
-                                        if (e.getValue().get(i).getSlotPatternStr().endsWith(slotStr)) {
-                                            if (e.getValue().get(i).getTeachingAssistant().getName().equals(taToCover.getName()))
-                                                break;
-                                            else {
-                                                if (e.getValue().get(0).getTeachingAssistant().getDontChangeTheSchedule()
-                                                        ||  e.getValue().size()==1
-                                                || e.getValue().get(0).getTeachingAssistant().getAreClassesAllotedInSingleDay()
-                                                     ) //e.getValue().get(i).getTeachingAssistant().getAreClassesAllotedInSingleDay())
-                                                    continue;
-                                                Schedule s = new Schedule();
-                                                s = e.getValue().get(i);
-
-                                                //comment - if same day time is already alloted to TA than skip that schedule
-                                                if(taSlotMap.get(taToCover.getName()+"_"+s.getRoom().getSlot().getDay()+"_"+s.getRoom().getSlot().getStartTime()) != null){
-                                                    continue;
-                                                }
+                                                    //comment - if same day time is already alloted to TA than skip that schedule
+                                                    if (taSlotMap.get(taToCover.getName() + "_" + s.getRoom().getSlot().getDay() + "_" + s.getRoom().getSlot().getStartTime()) != null) {
+                                                        continue;
+                                                    }
 
 //                                                boolean sameDayDifferentRoomSlotAlreadyAlloted=false;
 //                                                for(Schedule allotedSchedule:entry.getValue())
@@ -424,62 +424,61 @@ return;
 //                                                    continue;
 
 
+                                                    //comment - added alreadyReplaced counter in slot
+                                                    int slotReplacedCount = s.getRoom().getSlot().getAlreadyReplaced() != null ? s.getRoom().getSlot().getAlreadyReplaced() : 0;
+                                                    if (slotReplacedCount > 4) {
+                                                        continue;
+                                                    }
 
-
-                                                //comment - added alreadyReplaced counter in slot
-                                                int slotReplacedCount = s.getRoom().getSlot().getAlreadyReplaced() != null?s.getRoom().getSlot().getAlreadyReplaced():0;
-                                                if(slotReplacedCount > 4) {
-                                                    continue;
-                                                }
-
-                                                s.getRoom().getSlot().setAlreadyReplaced(slotReplacedCount+1);
+                                                    s.getRoom().getSlot().setAlreadyReplaced(slotReplacedCount + 1);
 //                                                entry.getValue().get(0).getTeachingAssistant().setDontChangeTheSchedule(true);
 
 
-                                                s.setTeachingAssistant(taToCover);
+                                                    s.setTeachingAssistant(taToCover);
 
-                                                if(taSchedules.containsKey(taToCover.getName())){
+                                                    if (taSchedules.containsKey(taToCover.getName())) {
 
-                                                    List<Schedule> existingSchedule=taSchedules.get(taToCover.getName());
-                                                    existingSchedule.add(s);
-                                                    taSchedules.put(taToCover.getName(), existingSchedule);
+                                                        List<Schedule> existingSchedule = taSchedules.get(taToCover.getName());
+                                                        existingSchedule.add(s);
+                                                        taSchedules.put(taToCover.getName(), existingSchedule);
+                                                    } else {
+                                                        List<Schedule> newSchedule = new ArrayList<>();
+                                                        newSchedule.add(s);
+                                                        taSchedules.put(taToCover.getName(), newSchedule);
+
+                                                    }
+                                                    e.getValue().remove(i);
+
+                                                    //comment - update taScheduleCount map used in createScheduleForMultipleDays
+                                                    int taCurrentScheduleCount = taScheduleCount.getOrDefault(e.getValue().get(0).getTeachingAssistant().getName(), 0);
+                                                    if (taCurrentScheduleCount > 0) {
+                                                        taScheduleCount.put(e.getValue().get(0).getTeachingAssistant().getName(), taCurrentScheduleCount - 1);
+                                                    }
+
+                                                    e.getValue().get(0).getTeachingAssistant().setDontChangeTheSchedule(true);
+
+                                                    //comment - update taSlotMap map used in createScheduleForMultipleDays
+                                                    taSlotMap.remove(e.getValue().get(0).getTeachingAssistant().getName() + "_" + s.getRoom().getSlot().getDay() + "_" + s.getRoom().getSlot().getStartTime());
+
+                                                    if (taScheduleCount.containsKey(taToCover.getName())) {
+                                                        taScheduleCount.put(taToCover.getName(), taScheduleCount.get(taToCover.getName()) + 1);
+                                                    } else {
+                                                        taScheduleCount.put(taToCover.getName(), 1);
+
+                                                    }
+
+                                                    //comment - update taSlotMap map used in createScheduleForMultipleDays
+                                                    taSlotMap.put(taToCover.getName() + "_" + s.getRoom().getSlot().getDay() + "_" + s.getRoom().getSlot().getStartTime(), true);
+
+                                                    createScheduleForMultipleDays(e.getValue().get(0).getTeachingAssistant().getName());
+                                                    allotedSlots++;
                                                 }
-                                                else
-                                                {
-                                                    List<Schedule> newSchedule=new ArrayList<>();
-                                                    newSchedule.add(s);
-                                                    taSchedules.put(taToCover.getName(), newSchedule);
-
-                                                }
-                                                e.getValue().remove(i);
-
-                                                //comment - update taScheduleCount map used in createScheduleForMultipleDays
-                                                int taCurrentScheduleCount = taScheduleCount.getOrDefault(e.getValue().get(0).getTeachingAssistant().getName(),0);
-                                                if(taCurrentScheduleCount>0) {
-                                                    taScheduleCount.put(e.getValue().get(0).getTeachingAssistant().getName(), taCurrentScheduleCount - 1);
-                                                }
-
-                                                e.getValue().get(0).getTeachingAssistant().setDontChangeTheSchedule(true);
-
-                                                //comment - update taSlotMap map used in createScheduleForMultipleDays
-                                                taSlotMap.remove(e.getValue().get(0).getTeachingAssistant().getName() +"_"+s.getRoom().getSlot().getDay()+"_"+s.getRoom().getSlot().getStartTime());
-
-                                                if (taScheduleCount.containsKey(taToCover.getName())) {
-                                                    taScheduleCount.put(taToCover.getName(), taScheduleCount.get(taToCover.getName()) + 1);
-                                                } else {
-                                                    taScheduleCount.put(taToCover.getName(), 1);
-
-                                                }
-
-                                                //comment - update taSlotMap map used in createScheduleForMultipleDays
-                                                taSlotMap.put(taToCover.getName() +"_"+s.getRoom().getSlot().getDay()+"_"+s.getRoom().getSlot().getStartTime(),true);
-
-                                                createScheduleForMultipleDays(e.getValue().get(0).getTeachingAssistant().getName());
-                                                allotedSlots++;
                                             }
                                         }
-                                    }
-                                createScheduleForMultipleDays(taToCover.getName());
+                                    createScheduleForMultipleDays(taToCover.getName());
+                                }
+                            }catch (Exception e){
+
                             }
                         }
                     }
