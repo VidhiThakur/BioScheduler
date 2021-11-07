@@ -9,8 +9,8 @@ import java.awt.*;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 
 public class SchedularService {
     private List<TeachingAssistant> taList = new ArrayList<>();
@@ -48,11 +48,12 @@ public class SchedularService {
 
         if(!checkIfScheduleIsComplete()){
 
-            for(int i=0;i<30;i++) {
+            for(int i=0;i<40;i++) {
                 completeAndPrint();
             }
             //do something
         }
+        completeAndPrint();
 
         //Complete
 
@@ -80,7 +81,7 @@ public class SchedularService {
 
 
         completeSchedule();
-        completeScheduleForTANotCoveredTillNow();
+     completeScheduleForTANotCoveredTillNow();
         int total = 0;
         for (Map.Entry<String, List<Schedule>> entry : taSchedules.entrySet()) {
             total += entry.getValue().size();
@@ -103,6 +104,8 @@ public class SchedularService {
                         if(!checkIfSlotInSequenceAndSingleDayPossible(entry.getValue(),preferredSlot)) {
                             continue;
                         }
+                        createScheduleForMultipleDays(entry.getValue().get(0).getTeachingAssistant().getName());
+                        allotedSlots = taSchedules.get(entry.getValue().get(0).getTeachingAssistant().getName()).size();
 
                         for(Map.Entry<String,List<Schedule>> e:taSchedules.entrySet()){
                             if(entry.getValue().get(0).getTeachingAssistant().getTAHours() > allotedSlots)
@@ -115,7 +118,7 @@ public class SchedularService {
                                         else {
                                             if (e.getValue().get(0).getTeachingAssistant().getDontChangeTheSchedule()
                                                     || e.getValue().size() == 1
-                                                    || e.getValue().get(0).getTeachingAssistant().getAreClassesAllotedInSingleDay()
+                                            || e.getValue().get(0).getTeachingAssistant().getAreClassesAllotedInSingleDay()
                                             ) //e.getValue().get(i).getTeachingAssistant().getAreClassesAllotedInSingleDay())
                                                 continue;
                                             Schedule s = new Schedule();
@@ -126,7 +129,10 @@ public class SchedularService {
                                                 continue;
                                             }
 
-                                            boolean sameDayDifferentRoomSlotAlreadyAlloted=false;
+//                                            if(checkIfSameDayConsecutiveSlotAsssignedInDifferentRoom(entry.getValue(),s))
+//                                                continue;
+
+//                                            boolean sameDayDifferentRoomSlotAlreadyAlloted=false;
 //                                            for(Schedule allotedSchedule:entry.getValue())
 //                                            {
 //                                                if(allotedSchedule.getRoom().getSlot().getDay()==s.getRoom().getSlot().getDay() && !allotedSchedule.getRoom().equals(s.getRoom())){
@@ -141,16 +147,16 @@ public class SchedularService {
 
 
                                             int slotReplacedCount = s.getRoom().getSlot().getAlreadyReplaced() != null ? s.getRoom().getSlot().getAlreadyReplaced() : 0;
-                                            if (slotReplacedCount > 2) {
+                                            if (slotReplacedCount > 10) {
                                                 continue;
                                             }
                                             s.getRoom().getSlot().setAlreadyReplaced(slotReplacedCount + 1);
-                                           // entry.getValue().get(0).getTeachingAssistant().setDontChangeTheSchedule(true);
+                                       //    e.getValue().get(0).getTeachingAssistant().setDontChangeTheSchedule(true);
                                             s.setTeachingAssistant(entry.getValue().get(0).getTeachingAssistant());
                                             entry.getValue().add(s);
                                             e.getValue().remove(i);
 
-                                           // e.getValue().get(0).getTeachingAssistant().setDontChangeTheSchedule(true);
+                                          //  e.getValue().get(0).getTeachingAssistant().setDontChangeTheSchedule(true);
                                             int taCurrentScheduleCount = taScheduleCount.getOrDefault(e.getValue().get(0).getTeachingAssistant().getName(),0);
                                             if(taCurrentScheduleCount>0) {
                                                 taScheduleCount.put(e.getValue().get(0).getTeachingAssistant().getName(), taCurrentScheduleCount - 1);
@@ -184,7 +190,10 @@ public class SchedularService {
                             if(!checkIfSlotInSequenceAndSingleDayPossible(entry.getValue(),availableSlot)) {
                                 continue;
                             }
-                                for (Map.Entry<String, List<Schedule>> e : taSchedules.entrySet()) {
+                            createScheduleForMultipleDays(entry.getValue().get(0).getTeachingAssistant().getName());
+                            allotedSlots = taSchedules.get(entry.getValue().get(0).getTeachingAssistant().getName()).size();
+
+                            for (Map.Entry<String, List<Schedule>> e : taSchedules.entrySet()) {
                                 if (entry.getValue().get(0).getTeachingAssistant().getTAHours() > allotedSlots)
                                     for (int i = 0; i < e.getValue().size(); i++) {
                                         if (e.getValue().get(i).getSlotPatternStr().endsWith(slotStr)) {
@@ -193,8 +202,8 @@ public class SchedularService {
                                             else {
                                                 if (e.getValue().get(0).getTeachingAssistant().getDontChangeTheSchedule()
                                                         ||  e.getValue().size()==1
-                                                        || e.getValue().get(0).getTeachingAssistant().getAreClassesAllotedInSingleDay()
-                                               ) //e.getValue().get(i).getTeachingAssistant().getAreClassesAllotedInSingleDay())
+                                                      || e.getValue().get(0).getTeachingAssistant().getAreClassesAllotedInSingleDay()
+                                                ) //e.getValue().get(i).getTeachingAssistant().getAreClassesAllotedInSingleDay())
                                                     continue;
                                                 Schedule s = new Schedule();
                                                 s = e.getValue().get(i);
@@ -204,29 +213,18 @@ public class SchedularService {
                                                     continue;
                                                 }
 
-//                                                boolean sameDayDifferentRoomSlotAlreadyAlloted=false;
-//                                                for(Schedule allotedSchedule:entry.getValue())
-//                                                {
-//                                                    if(allotedSchedule.getRoom().getSlot().getDay()==s.getRoom().getSlot().getDay() && !allotedSchedule.getRoom().equals(s.getRoom())){
-//                                                        sameDayDifferentRoomSlotAlreadyAlloted=true;
-//                                                        break;
-//                                                    }
-//
-//                                                }
-//                                                if(sameDayDifferentRoomSlotAlreadyAlloted)
+//                                                if(checkIfSameDayConsecutiveSlotAsssignedInDifferentRoom(entry.getValue(),s))
 //                                                    continue;
-
-
-
+//
 
                                                 //comment - added alreadyReplaced counter in slot
                                                 int slotReplacedCount = s.getRoom().getSlot().getAlreadyReplaced() != null?s.getRoom().getSlot().getAlreadyReplaced():0;
-                                                if(slotReplacedCount > 4) {
+                                                if(slotReplacedCount > 10) {
                                                     continue;
                                                 }
 
                                                 s.getRoom().getSlot().setAlreadyReplaced(slotReplacedCount+1);
-                                                entry.getValue().get(0).getTeachingAssistant().setDontChangeTheSchedule(true);
+                                                 //           e.getValue().get(0).getTeachingAssistant().setDontChangeTheSchedule(true);
                                                 s.setTeachingAssistant(entry.getValue().get(0).getTeachingAssistant());
                                                 entry.getValue().add(s);
                                                 e.getValue().remove(i);
@@ -237,7 +235,7 @@ public class SchedularService {
                                                     taScheduleCount.put(e.getValue().get(0).getTeachingAssistant().getName(), taCurrentScheduleCount - 1);
                                                 }
 
-                                                e.getValue().get(0).getTeachingAssistant().setDontChangeTheSchedule(true);
+                             //              e.getValue().get(0).getTeachingAssistant().setDontChangeTheSchedule(true);
 
                                                 //comment - update taSlotMap map used in createScheduleForMultipleDays
                                                 taSlotMap.remove(e.getValue().get(0).getTeachingAssistant().getName() +"_"+s.getRoom().getSlot().getDay()+"_"+s.getRoom().getSlot().getStartTime());
@@ -262,6 +260,7 @@ public class SchedularService {
                         }
                     }
                     if(allotedSlots<entry.getValue().get(0).getTeachingAssistant().getTAHours()){
+                        createScheduleForMultipleDays(entry.getValue().get(0).getTeachingAssistant().getName());
                         System.out.println("Schedule is not feasible as classes cant be given to "+entry.getValue().get(0).getTeachingAssistant().getName());
                         break;
                     }
@@ -272,7 +271,25 @@ public class SchedularService {
 
     }
 
+    private boolean checkIfSameDayConsecutiveSlotAsssignedInDifferentRoom(List<Schedule> value, Schedule s) {
+
+        for(Schedule allotedSchedule:value)
+        {
+            if(allotedSchedule.getRoom().getSlot().getDay()==s.getRoom().getSlot().getDay() && !allotedSchedule.getRoom().equals(s.getRoom()) && lessThanOrEqual(allotedSchedule.getRoom(),s.getRoom(),true)){
+                return true;
+            }
+
+        }
+        return false;
+
+
+
+
+    }
+
     private void completeScheduleForTANotCoveredTillNow() {
+        Map<String, List<Schedule>> tempMap=new HashMap<>();
+
         TeachingAssistant taToCover=new TeachingAssistant();
         for (TeachingAssistant ta:taList
         ) {
@@ -283,212 +300,203 @@ public class SchedularService {
         }
 
         if(taToCover.getTAHours()==null)
-return;
-      //  for (Map.Entry<String, List<Schedule>> entry : taSchedules.entrySet()) {
-            int allotedSlots = 0;
+            return;
+        if(taToCover.getTAHours()<=taScheduleCount.get(taToCover.getName()))
+            return;
+        //  for (Map.Entry<String, List<Schedule>> entry : taSchedules.entrySet()) {
+        int allotedSlots = 0;
 
-                while(taToCover.getTAHours() > allotedSlots){
-                    for(int count=0;count<taToCover.getPreferredSlot().size();count++){
-                        Slot preferredSlot=taToCover.getPreferredSlot().get(count);
-                        String slotStr=preferredSlot.getDay()+"_"+preferredSlot.getStartTime();
+       // while(taToCover.getTAHours() > allotedSlots){
+            for(int count=0;count<taToCover.getPreferredSlot().size();count++){
+                Slot preferredSlot=taToCover.getPreferredSlot().get(count);
+                String slotStr=preferredSlot.getDay()+"_"+preferredSlot.getStartTime();
 
-                        //comment - check if picked slot can be alloted or not
-                        if(taSchedules.containsKey(taToCover.getName()))
-                        if(!checkIfSlotInSequenceAndSingleDayPossible(taSchedules.get(taToCover.getName()),preferredSlot)) {
+                //comment - check if picked slot can be alloted or not
+                if(taSchedules.containsKey(taToCover.getName()))
+                    if(!checkIfSlotInSequenceAndSingleDayPossible(taSchedules.get(taToCover.getName()),preferredSlot)) {
+                        continue;
+                    }
+                try {
+                    for (Map.Entry<String, List<Schedule>> e : taSchedules.entrySet()) {
+
+                        if (taToCover.getTAHours() > allotedSlots)
+                            for (int i = 0; i < e.getValue().size(); i++) {
+                                if (e.getValue().get(i).getSlotPatternStr().endsWith(slotStr)) {
+                                    if (e.getValue().get(i).getTeachingAssistant().getName().equals(taToCover.getName()))
+                                        break;
+                                    else {
+                                        if (e.getValue().get(i).getTeachingAssistant().getDontChangeTheSchedule()
+                                                || e.getValue().size() == 1
+                                               || e.getValue().get(i).getTeachingAssistant().getAreClassesAllotedInSingleDay()
+                                        ) //e.getValue().get(i).getTeachingAssistant().getAreClassesAllotedInSingleDay())
+                                            continue;
+                                        Schedule s = new Schedule();
+                                        s = e.getValue().get(i);
+
+                                        //check if the ta whom we want this new slot alloted to, already has a slot booked for the same time.
+                                        if (taSlotMap.get(taToCover.getName() + "_" + s.getRoom().getSlot().getDay() + "_" + s.getRoom().getSlot().getStartTime()) != null) {
+                                            continue;
+                                        }
+
+//                                        if(taSchedules.containsKey(taToCover.getName())) {
+//                                            if (checkIfSameDayConsecutiveSlotAsssignedInDifferentRoom(taSchedules.get(taToCover.getName()), s))
+//                                                continue;
+//                                        }
+
+                                        int slotReplacedCount = s.getRoom().getSlot().getAlreadyReplaced() != null ? s.getRoom().getSlot().getAlreadyReplaced() : 0;
+                                        if (slotReplacedCount > 10) {
+                                            continue;
+                                        }
+                                        s.getRoom().getSlot().setAlreadyReplaced(slotReplacedCount + 1);
+                         //                e.getValue().get(0).getTeachingAssistant().setDontChangeTheSchedule(true);
+                                        s.setTeachingAssistant(taToCover);
+                                        if (tempMap.containsKey(taToCover.getName())) {
+
+                                            List<Schedule> existingSchedule = tempMap.get(taToCover.getName());
+                                            existingSchedule.add(s);
+                                            tempMap.put(taToCover.getName(), existingSchedule);
+                                        } else {
+                                            List<Schedule> newSchedule = new ArrayList<>();
+                                            newSchedule.add(s);
+                                            tempMap.put(taToCover.getName(), newSchedule);
+                                            //taSchedules.put(taToCover.getName(), newSchedule);
+
+                                        }
+                                        List<Schedule> tempScheduleListForDeletion=e.getValue();
+                                        tempScheduleListForDeletion.remove(i);
+                                        e.setValue(tempScheduleListForDeletion);
+
+                                //      e.getValue().get(0).getTeachingAssistant().setDontChangeTheSchedule(true);
+                                        int taCurrentScheduleCount = taScheduleCount.getOrDefault(e.getValue().get(0).getTeachingAssistant().getName(), 0);
+                                        if (taCurrentScheduleCount > 0) {
+                                            taScheduleCount.put(e.getValue().get(0).getTeachingAssistant().getName(), taCurrentScheduleCount - 1);
+                                        }
+
+                                        taSlotMap.remove(e.getValue().get(0).getTeachingAssistant().getName() + "_" + s.getRoom().getSlot().getDay() + "_" + s.getRoom().getSlot().getStartTime());
+
+                                        if (taScheduleCount.containsKey(taToCover.getName())) {
+                                            taScheduleCount.put(taToCover.getName(), taScheduleCount.get(taToCover.getName()) + 1);
+                                        } else {
+                                            taScheduleCount.put(taToCover.getName(), 1);
+
+                                        }
+
+                                        taSlotMap.put(taToCover.getName() + "_" + s.getRoom().getSlot().getDay() + "_" + s.getRoom().getSlot().getStartTime(), true);
+
+                                        createScheduleForMultipleDays(e.getValue().get(0).getTeachingAssistant().getName());
+                                        allotedSlots++;
+                                    }
+                                }
+                            }
+
+                    }
+
+
+                    taSchedules.putAll(tempMap);
+                }catch (Exception e){
+                   throw e;
+                }
+            }
+            if(allotedSlots<taToCover.getTAHours()) {
+
+                for (int count = 0; count < taToCover.getAvailableSlot().size(); count++) {
+                    Slot availableSlot = taToCover.getAvailableSlot().get(count);
+                    String slotStr = availableSlot.getDay() + "_" + availableSlot.getStartTime();
+                    if(taSchedules.containsKey(taToCover.getName()))
+                        if(!checkIfSlotInSequenceAndSingleDayPossible(taSchedules.get(taToCover.getName()),availableSlot)) {
                             continue;
                         }
-                        try {
-                            for (Map.Entry<String, List<Schedule>> e : taSchedules.entrySet()) {
+                    try {
+                        for (Map.Entry<String, List<Schedule>> e : taSchedules.entrySet()) {
+                            if (taToCover.getTAHours() > allotedSlots)
+                                for (int i = 0; i < e.getValue().size(); i++) {
+                                    if (e.getValue().get(i).getSlotPatternStr().endsWith(slotStr)) {
+                                        if (e.getValue().get(i).getTeachingAssistant().getName().equals(taToCover.getName()))
+                                            break;
+                                        else {
+                                            if (e.getValue().get(0).getTeachingAssistant().getDontChangeTheSchedule()
+                                                    || e.getValue().size() == 1
+                                                   || e.getValue().get(0).getTeachingAssistant().getAreClassesAllotedInSingleDay()
+                                            ) //e.getValue().get(i).getTeachingAssistant().getAreClassesAllotedInSingleDay())
+                                                continue;
+                                            Schedule s = new Schedule();
+                                            s = e.getValue().get(i);
 
-                                if (taToCover.getTAHours() > allotedSlots)
-                                    for (int i = 0; i < e.getValue().size(); i++) {
-                                        if (e.getValue().get(i).getSlotPatternStr().endsWith(slotStr)) {
-                                            if (e.getValue().get(i).getTeachingAssistant().getName().equals(taToCover.getName()))
-                                                break;
-                                            else {
-                                                if (e.getValue().get(i).getTeachingAssistant().getDontChangeTheSchedule()
-                                                        || e.getValue().size() == 1
-                                                        || e.getValue().get(i).getTeachingAssistant().getAreClassesAllotedInSingleDay()
-                                                ) //e.getValue().get(i).getTeachingAssistant().getAreClassesAllotedInSingleDay())
-                                                    continue;
-                                                Schedule s = new Schedule();
-                                                s = e.getValue().get(i);
-
-                                                //check if the ta whom we want this new slot alloted to, already has a slot booked for the same time.
-                                                if (taSlotMap.get(taToCover.getName() + "_" + s.getRoom().getSlot().getDay() + "_" + s.getRoom().getSlot().getStartTime()) != null) {
-                                                    continue;
-                                                }
-
-                                                //boolean sameDayDifferentRoomSlotAlreadyAlloted=false;
-//                                            for(Schedule allotedSchedule:entry.getValue())
-//                                            {
-//                                                if(allotedSchedule.getRoom().getSlot().getDay()==s.getRoom().getSlot().getDay() && !allotedSchedule.getRoom().equals(s.getRoom())){
-//                                                    sameDayDifferentRoomSlotAlreadyAlloted=true;
-//                                                    break;
-//                                                }
-//
-//                                            }
-//                                            if(sameDayDifferentRoomSlotAlreadyAlloted)
-//                                                continue;
-
-
-                                                int slotReplacedCount = s.getRoom().getSlot().getAlreadyReplaced() != null ? s.getRoom().getSlot().getAlreadyReplaced() : 0;
-                                                if (slotReplacedCount > 2) {
-                                                    continue;
-                                                }
-                                                s.getRoom().getSlot().setAlreadyReplaced(slotReplacedCount + 1);
-//                                            entry.getValue().get(0).getTeachingAssistant().setDontChangeTheSchedule(true);
-                                                s.setTeachingAssistant(taToCover);
-                                                if (taSchedules.containsKey(taToCover.getName())) {
-
-                                                    List<Schedule> existingSchedule = taSchedules.get(taToCover.getName());
-                                                    existingSchedule.add(s);
-                                                    taSchedules.put(taToCover.getName(), existingSchedule);
-                                                } else {
-                                                    List<Schedule> newSchedule = new ArrayList<>();
-                                                    newSchedule.add(s);
-                                                    taSchedules.put(taToCover.getName(), newSchedule);
-
-                                                }
-                                                e.getValue().remove(i);
-
-                                                // e.getValue().get(0).getTeachingAssistant().setDontChangeTheSchedule(true);
-                                                int taCurrentScheduleCount = taScheduleCount.getOrDefault(e.getValue().get(0).getTeachingAssistant().getName(), 0);
-                                                if (taCurrentScheduleCount > 0) {
-                                                    taScheduleCount.put(e.getValue().get(0).getTeachingAssistant().getName(), taCurrentScheduleCount - 1);
-                                                }
-
-                                                taSlotMap.remove(e.getValue().get(0).getTeachingAssistant().getName() + "_" + s.getRoom().getSlot().getDay() + "_" + s.getRoom().getSlot().getStartTime());
-
-                                                if (taScheduleCount.containsKey(taToCover.getName())) {
-                                                    taScheduleCount.put(taToCover.getName(), taScheduleCount.get(taToCover.getName()) + 1);
-                                                } else {
-                                                    taScheduleCount.put(taToCover.getName(), 1);
-
-                                                }
-
-                                                taSlotMap.put(taToCover.getName() + "_" + s.getRoom().getSlot().getDay() + "_" + s.getRoom().getSlot().getStartTime(), true);
-
-                                                createScheduleForMultipleDays(e.getValue().get(0).getTeachingAssistant().getName());
-                                                allotedSlots++;
+                                            //comment - if same day time is already alloted to TA than skip that schedule
+                                            if (taSlotMap.get(taToCover.getName() + "_" + s.getRoom().getSlot().getDay() + "_" + s.getRoom().getSlot().getStartTime()) != null) {
+                                                continue;
                                             }
+
+//                                            if(taSchedules.containsKey(taToCover.getName())) {
+//                                                if (checkIfSameDayConsecutiveSlotAsssignedInDifferentRoom(taSchedules.get(taToCover.getName()), s))
+//                                                    continue;
+//                                            }
+
+                                            //comment - added alreadyReplaced counter in slot
+                                            int slotReplacedCount = s.getRoom().getSlot().getAlreadyReplaced() != null ? s.getRoom().getSlot().getAlreadyReplaced() : 0;
+                                            if (slotReplacedCount > 10) {
+                                                continue;
+                                            }
+
+                                            s.getRoom().getSlot().setAlreadyReplaced(slotReplacedCount + 1);
+                            //                    e.getValue().get(0).getTeachingAssistant().setDontChangeTheSchedule(true);
+
+
+                                            s.setTeachingAssistant(taToCover);
+
+                                            if (taSchedules.containsKey(taToCover.getName())) {
+
+                                                List<Schedule> existingSchedule = taSchedules.get(taToCover.getName());
+                                                existingSchedule.add(s);
+                                                taSchedules.put(taToCover.getName(), existingSchedule);
+                                            } else {
+                                                List<Schedule> newSchedule = new ArrayList<>();
+                                                newSchedule.add(s);
+                                                taSchedules.put(taToCover.getName(), newSchedule);
+
+                                            }
+                                            e.getValue().remove(i);
+
+                                            //comment - update taScheduleCount map used in createScheduleForMultipleDays
+                                            int taCurrentScheduleCount = taScheduleCount.getOrDefault(e.getValue().get(0).getTeachingAssistant().getName(), 0);
+                                            if (taCurrentScheduleCount > 0) {
+                                                taScheduleCount.put(e.getValue().get(0).getTeachingAssistant().getName(), taCurrentScheduleCount - 1);
+                                            }
+
+                               //             e.getValue().get(0).getTeachingAssistant().setDontChangeTheSchedule(true);
+
+                                            //comment - update taSlotMap map used in createScheduleForMultipleDays
+                                            taSlotMap.remove(e.getValue().get(0).getTeachingAssistant().getName() + "_" + s.getRoom().getSlot().getDay() + "_" + s.getRoom().getSlot().getStartTime());
+
+                                            if (taScheduleCount.containsKey(taToCover.getName())) {
+                                                taScheduleCount.put(taToCover.getName(), taScheduleCount.get(taToCover.getName()) + 1);
+                                            } else {
+                                                taScheduleCount.put(taToCover.getName(), 1);
+
+                                            }
+
+                                            //comment - update taSlotMap map used in createScheduleForMultipleDays
+                                            taSlotMap.put(taToCover.getName() + "_" + s.getRoom().getSlot().getDay() + "_" + s.getRoom().getSlot().getStartTime(), true);
+
+                                            createScheduleForMultipleDays(e.getValue().get(0).getTeachingAssistant().getName());
+                                            allotedSlots++;
                                         }
                                     }
-
-                            }
-                        }catch (Exception e){
-                            System.out.println(e.getStackTrace());
-                            System.out.println("vidihi");
-                        }
-                    }
-                    if(allotedSlots<taToCover.getTAHours()) {
-
-                        for (int count = 0; count < taToCover.getAvailableSlot().size(); count++) {
-                            Slot availableSlot = taToCover.getAvailableSlot().get(count);
-                            String slotStr = availableSlot.getDay() + "_" + availableSlot.getStartTime();
-                            if(taSchedules.containsKey(taToCover.getName()))
-                                if(!checkIfSlotInSequenceAndSingleDayPossible(taSchedules.get(taToCover.getName()),availableSlot)) {
-                                    continue;
                                 }
-                            try {
-                                for (Map.Entry<String, List<Schedule>> e : taSchedules.entrySet()) {
-                                    if (taToCover.getTAHours() > allotedSlots)
-                                        for (int i = 0; i < e.getValue().size(); i++) {
-                                            if (e.getValue().get(i).getSlotPatternStr().endsWith(slotStr)) {
-                                                if (e.getValue().get(i).getTeachingAssistant().getName().equals(taToCover.getName()))
-                                                    break;
-                                                else {
-                                                    if (e.getValue().get(0).getTeachingAssistant().getDontChangeTheSchedule()
-                                                            || e.getValue().size() == 1
-                                                            || e.getValue().get(0).getTeachingAssistant().getAreClassesAllotedInSingleDay()
-                                                    ) //e.getValue().get(i).getTeachingAssistant().getAreClassesAllotedInSingleDay())
-                                                        continue;
-                                                    Schedule s = new Schedule();
-                                                    s = e.getValue().get(i);
-
-                                                    //comment - if same day time is already alloted to TA than skip that schedule
-                                                    if (taSlotMap.get(taToCover.getName() + "_" + s.getRoom().getSlot().getDay() + "_" + s.getRoom().getSlot().getStartTime()) != null) {
-                                                        continue;
-                                                    }
-
-//                                                boolean sameDayDifferentRoomSlotAlreadyAlloted=false;
-//                                                for(Schedule allotedSchedule:entry.getValue())
-//                                                {
-//                                                    if(allotedSchedule.getRoom().getSlot().getDay()==s.getRoom().getSlot().getDay() && !allotedSchedule.getRoom().equals(s.getRoom())){
-//                                                        sameDayDifferentRoomSlotAlreadyAlloted=true;
-//                                                        break;
-//                                                    }
-//
-//                                                }
-//                                                if(sameDayDifferentRoomSlotAlreadyAlloted)
-//                                                    continue;
-
-
-                                                    //comment - added alreadyReplaced counter in slot
-                                                    int slotReplacedCount = s.getRoom().getSlot().getAlreadyReplaced() != null ? s.getRoom().getSlot().getAlreadyReplaced() : 0;
-                                                    if (slotReplacedCount > 4) {
-                                                        continue;
-                                                    }
-
-                                                    s.getRoom().getSlot().setAlreadyReplaced(slotReplacedCount + 1);
-//                                                entry.getValue().get(0).getTeachingAssistant().setDontChangeTheSchedule(true);
-
-
-                                                    s.setTeachingAssistant(taToCover);
-
-                                                    if (taSchedules.containsKey(taToCover.getName())) {
-
-                                                        List<Schedule> existingSchedule = taSchedules.get(taToCover.getName());
-                                                        existingSchedule.add(s);
-                                                        taSchedules.put(taToCover.getName(), existingSchedule);
-                                                    } else {
-                                                        List<Schedule> newSchedule = new ArrayList<>();
-                                                        newSchedule.add(s);
-                                                        taSchedules.put(taToCover.getName(), newSchedule);
-
-                                                    }
-                                                    e.getValue().remove(i);
-
-                                                    //comment - update taScheduleCount map used in createScheduleForMultipleDays
-                                                    int taCurrentScheduleCount = taScheduleCount.getOrDefault(e.getValue().get(0).getTeachingAssistant().getName(), 0);
-                                                    if (taCurrentScheduleCount > 0) {
-                                                        taScheduleCount.put(e.getValue().get(0).getTeachingAssistant().getName(), taCurrentScheduleCount - 1);
-                                                    }
-
-                                                    e.getValue().get(0).getTeachingAssistant().setDontChangeTheSchedule(true);
-
-                                                    //comment - update taSlotMap map used in createScheduleForMultipleDays
-                                                    taSlotMap.remove(e.getValue().get(0).getTeachingAssistant().getName() + "_" + s.getRoom().getSlot().getDay() + "_" + s.getRoom().getSlot().getStartTime());
-
-                                                    if (taScheduleCount.containsKey(taToCover.getName())) {
-                                                        taScheduleCount.put(taToCover.getName(), taScheduleCount.get(taToCover.getName()) + 1);
-                                                    } else {
-                                                        taScheduleCount.put(taToCover.getName(), 1);
-
-                                                    }
-
-                                                    //comment - update taSlotMap map used in createScheduleForMultipleDays
-                                                    taSlotMap.put(taToCover.getName() + "_" + s.getRoom().getSlot().getDay() + "_" + s.getRoom().getSlot().getStartTime(), true);
-
-                                                    createScheduleForMultipleDays(e.getValue().get(0).getTeachingAssistant().getName());
-                                                    allotedSlots++;
-                                                }
-                                            }
-                                        }
-                                    createScheduleForMultipleDays(taToCover.getName());
-                                }
-                            }catch (Exception e){
-
-                            }
+                            createScheduleForMultipleDays(taToCover.getName());
                         }
-                    }
-                    if(allotedSlots<taToCover.getTAHours()){
-                        System.out.println("Schedule is not feasible as classes cant be given to "+taToCover.getName());
-                        break;
+                    }catch (Exception e){
+
                     }
                 }
+            }
+//            if(allotedSlots<taToCover.getTAHours()){
+//                System.out.println("Schedule is not feasible as classes cant be given to "+taToCover.getName());
+//                break;
+//            }
 
-        }
+
+    }
 
 
 
@@ -517,7 +525,7 @@ return;
         XSSFCellStyle style =workbook.createCellStyle();
         XSSFFont font=workbook.createFont();
         font.setColor(new XSSFColor(Color.BLUE));
-        
+
 
         /* set the weight of the font */
         font.setBold(true);
@@ -664,38 +672,38 @@ return;
                         if(taSchedules.get(ta.getName()) != null) {
                             alreadyAllotedSchedules = taSchedules.get(ta.getName());
                         }
-                        if(possibleSlots.size()>0) {
-                            for (Schedule alreadyAllotedSingleSchedule : alreadyAllotedSchedules) {
-                                int timeDurationOfOneSlot=Integer.valueOf(alreadyAllotedSingleSchedule.getRoom().getSlot().getEndTime())-Integer.valueOf(alreadyAllotedSingleSchedule.getRoom().getSlot().getStartTime());
-                                for (Iterator<Room> iterator = possibleSlots.iterator(); iterator.hasNext(); ) {
-                                    Room singlePossibleSlot = iterator.next();
-
-                                    if (alreadyAllotedSingleSchedule.getRoom().getSlot().getDay() == singlePossibleSlot.getSlot().getDay() && (Math.abs(Integer.valueOf(alreadyAllotedSingleSchedule.getRoom().getSlot().getEndTime()) - Integer.valueOf(singlePossibleSlot.getSlot().getStartTime()))<timeDurationOfOneSlot || Math.abs((Integer.valueOf(alreadyAllotedSingleSchedule.getRoom().getSlot().getStartTime()) - Integer.valueOf(singlePossibleSlot.getSlot().getEndTime()))) <timeDurationOfOneSlot )  && singlePossibleSlot.getRoomNo() != alreadyAllotedSingleSchedule.getRoom().getRoomNo()) {
-                                        iterator.remove();
-                                    }
-
-
-                                  
-
-                                }
-                            }
-
-                            for (Iterator<Room> iterator = possibleSlots.iterator(); iterator.hasNext(); ) {
-                                Room singlePossibleSlot = iterator.next();
-                                int timeDurationOfOneSlot=Integer.valueOf(singlePossibleSlot.getSlot().getEndTime())-Integer.valueOf(singlePossibleSlot.getSlot().getStartTime());
-
-                                for (Room possibleSlot:possibleSlots
-                                ) {
-                                    if (singlePossibleSlot.getSlot().getDay() == possibleSlot.getSlot().getDay() && (Math.abs(Integer.valueOf(singlePossibleSlot.getSlot().getEndTime()) - Integer.valueOf(possibleSlot.getSlot().getStartTime()))<timeDurationOfOneSlot || Math.abs((Integer.valueOf(singlePossibleSlot.getSlot().getStartTime()) - Integer.valueOf(possibleSlot.getSlot().getEndTime()))) <timeDurationOfOneSlot )  && singlePossibleSlot.getRoomNo() != possibleSlot.getRoomNo()) {
-
-                                        iterator.remove();
-                                    }
-                                }
-
-
-
-                            }
-                        }
+//                        if(possibleSlots.size()>0) {
+//                            for (Schedule alreadyAllotedSingleSchedule : alreadyAllotedSchedules) {
+//                                int timeDurationOfOneSlot=Integer.valueOf(alreadyAllotedSingleSchedule.getRoom().getSlot().getEndTime())-Integer.valueOf(alreadyAllotedSingleSchedule.getRoom().getSlot().getStartTime());
+//                                for (Iterator<Room> iterator = possibleSlots.iterator(); iterator.hasNext(); ) {
+//                                    Room singlePossibleSlot = iterator.next();
+//
+//                                    if (alreadyAllotedSingleSchedule.getRoom().getSlot().getDay() == singlePossibleSlot.getSlot().getDay() && (Math.abs(Integer.valueOf(alreadyAllotedSingleSchedule.getRoom().getSlot().getEndTime()) - Integer.valueOf(singlePossibleSlot.getSlot().getStartTime()))<timeDurationOfOneSlot || Math.abs((Integer.valueOf(alreadyAllotedSingleSchedule.getRoom().getSlot().getStartTime()) - Integer.valueOf(singlePossibleSlot.getSlot().getEndTime()))) <timeDurationOfOneSlot )  && singlePossibleSlot.getRoomNo() != alreadyAllotedSingleSchedule.getRoom().getRoomNo()) {
+//                                        iterator.remove();
+//                                    }
+//
+//
+//
+//
+//                                }
+//                            }
+//
+//                            for (Iterator<Room> iterator = possibleSlots.iterator(); iterator.hasNext(); ) {
+//                                Room singlePossibleSlot = iterator.next();
+//                                int timeDurationOfOneSlot=Integer.valueOf(singlePossibleSlot.getSlot().getEndTime())-Integer.valueOf(singlePossibleSlot.getSlot().getStartTime());
+//
+//                                for (Room possibleSlot:possibleSlots
+//                                ) {
+//                                    if (singlePossibleSlot.getSlot().getDay() == possibleSlot.getSlot().getDay() && (Math.abs(Integer.valueOf(singlePossibleSlot.getSlot().getEndTime()) - Integer.valueOf(possibleSlot.getSlot().getStartTime()))<timeDurationOfOneSlot || Math.abs((Integer.valueOf(singlePossibleSlot.getSlot().getStartTime()) - Integer.valueOf(possibleSlot.getSlot().getEndTime()))) <timeDurationOfOneSlot )  && singlePossibleSlot.getRoomNo() != possibleSlot.getRoomNo()) {
+//
+//                                        iterator.remove();
+//                                    }
+//                                }
+//
+//
+//
+//                            }
+//                        }
 
 
                         if (possibleSlots.size() == ta.getTAHours()) {
@@ -710,38 +718,38 @@ return;
                 if(taSchedules.get(ta.getName()) != null) {
                     alreadyAllotedSchedules = taSchedules.get(ta.getName());
                 }
-                if(possibleSlots.size()>0) {
-                    for (Schedule alreadyAllotedSingleSchedule : alreadyAllotedSchedules) {
-                        int timeDurationOfOneSlot=Integer.valueOf(alreadyAllotedSingleSchedule.getRoom().getSlot().getEndTime())-Integer.valueOf(alreadyAllotedSingleSchedule.getRoom().getSlot().getStartTime());
-                        for (Iterator<Room> iterator = possibleSlots.iterator(); iterator.hasNext(); ) {
-                            Room singlePossibleSlot = iterator.next();
-
-                            if (alreadyAllotedSingleSchedule.getRoom().getSlot().getDay() == singlePossibleSlot.getSlot().getDay() && (Math.abs(Integer.valueOf(alreadyAllotedSingleSchedule.getRoom().getSlot().getEndTime()) - Integer.valueOf(singlePossibleSlot.getSlot().getStartTime()))<timeDurationOfOneSlot || Math.abs((Integer.valueOf(alreadyAllotedSingleSchedule.getRoom().getSlot().getStartTime()) - Integer.valueOf(singlePossibleSlot.getSlot().getEndTime()))) <timeDurationOfOneSlot )  && singlePossibleSlot.getRoomNo() != alreadyAllotedSingleSchedule.getRoom().getRoomNo()) {
-                                iterator.remove();
-                            }
-
-
-
-
-                        }
-                    }
-
-                    for (Iterator<Room> iterator = possibleSlots.iterator(); iterator.hasNext(); ) {
-                        Room singlePossibleSlot = iterator.next();
-                        int timeDurationOfOneSlot=Integer.valueOf(singlePossibleSlot.getSlot().getEndTime())-Integer.valueOf(singlePossibleSlot.getSlot().getStartTime());
-
-                        for (Room possibleSlot:possibleSlots
-                        ) {
-                            if (singlePossibleSlot.getSlot().getDay() == possibleSlot.getSlot().getDay() && (Math.abs(Integer.valueOf(singlePossibleSlot.getSlot().getEndTime()) - Integer.valueOf(possibleSlot.getSlot().getStartTime()))<timeDurationOfOneSlot || Math.abs((Integer.valueOf(singlePossibleSlot.getSlot().getStartTime()) - Integer.valueOf(possibleSlot.getSlot().getEndTime()))) <timeDurationOfOneSlot )  && singlePossibleSlot.getRoomNo() != possibleSlot.getRoomNo()) {
-
-                                iterator.remove();
-                            }
-                        }
-
-
-
-                    }
-                }
+//                if(possibleSlots.size()>0) {
+//                    for (Schedule alreadyAllotedSingleSchedule : alreadyAllotedSchedules) {
+//                        int timeDurationOfOneSlot=Integer.valueOf(alreadyAllotedSingleSchedule.getRoom().getSlot().getEndTime())-Integer.valueOf(alreadyAllotedSingleSchedule.getRoom().getSlot().getStartTime());
+//                        for (Iterator<Room> iterator = possibleSlots.iterator(); iterator.hasNext(); ) {
+//                            Room singlePossibleSlot = iterator.next();
+//
+//                            if (alreadyAllotedSingleSchedule.getRoom().getSlot().getDay() == singlePossibleSlot.getSlot().getDay() && (Math.abs(Integer.valueOf(alreadyAllotedSingleSchedule.getRoom().getSlot().getEndTime()) - Integer.valueOf(singlePossibleSlot.getSlot().getStartTime()))<timeDurationOfOneSlot || Math.abs((Integer.valueOf(alreadyAllotedSingleSchedule.getRoom().getSlot().getStartTime()) - Integer.valueOf(singlePossibleSlot.getSlot().getEndTime()))) <timeDurationOfOneSlot )  && singlePossibleSlot.getRoomNo() != alreadyAllotedSingleSchedule.getRoom().getRoomNo()) {
+//                                iterator.remove();
+//                            }
+//
+//
+//
+//
+//                        }
+//                    }
+//
+//                    for (Iterator<Room> iterator = possibleSlots.iterator(); iterator.hasNext(); ) {
+//                        Room singlePossibleSlot = iterator.next();
+//                        int timeDurationOfOneSlot=Integer.valueOf(singlePossibleSlot.getSlot().getEndTime())-Integer.valueOf(singlePossibleSlot.getSlot().getStartTime());
+//
+//                        for (Room possibleSlot:possibleSlots
+//                        ) {
+//                            if (singlePossibleSlot.getSlot().getDay() == possibleSlot.getSlot().getDay() && (Math.abs(Integer.valueOf(singlePossibleSlot.getSlot().getEndTime()) - Integer.valueOf(possibleSlot.getSlot().getStartTime()))<timeDurationOfOneSlot || Math.abs((Integer.valueOf(singlePossibleSlot.getSlot().getStartTime()) - Integer.valueOf(possibleSlot.getSlot().getEndTime()))) <timeDurationOfOneSlot )  && singlePossibleSlot.getRoomNo() != possibleSlot.getRoomNo()) {
+//
+//                                iterator.remove();
+//                            }
+//                        }
+//
+//
+//
+//                    }
+//                }
 
 
                 if(singleDaySlotFound) {
@@ -799,38 +807,38 @@ return;
                         if(taSchedules.get(ta.getName()) != null) {
                             alreadyAllotedSchedules = taSchedules.get(ta.getName());
                         }
-                        if(possibleSlots.size()>0) {
-                            for (Schedule alreadyAllotedSingleSchedule : alreadyAllotedSchedules) {
-                                int timeDurationOfOneSlot=Integer.valueOf(alreadyAllotedSingleSchedule.getRoom().getSlot().getEndTime())-Integer.valueOf(alreadyAllotedSingleSchedule.getRoom().getSlot().getStartTime());
-                                for (Iterator<Room> iterator = possibleSlots.iterator(); iterator.hasNext(); ) {
-                                    Room singlePossibleSlot = iterator.next();
-
-                                    if (alreadyAllotedSingleSchedule.getRoom().getSlot().getDay() == singlePossibleSlot.getSlot().getDay() && (Math.abs(Integer.valueOf(alreadyAllotedSingleSchedule.getRoom().getSlot().getEndTime()) - Integer.valueOf(singlePossibleSlot.getSlot().getStartTime()))<timeDurationOfOneSlot || Math.abs((Integer.valueOf(alreadyAllotedSingleSchedule.getRoom().getSlot().getStartTime()) - Integer.valueOf(singlePossibleSlot.getSlot().getEndTime()))) <timeDurationOfOneSlot )  && singlePossibleSlot.getRoomNo() != alreadyAllotedSingleSchedule.getRoom().getRoomNo()) {
-                                        iterator.remove();
-                                    }
-
-
-
-
-                                }
-                            }
-
-                            for (Iterator<Room> iterator = possibleSlots.iterator(); iterator.hasNext(); ) {
-                                Room singlePossibleSlot = iterator.next();
-                                int timeDurationOfOneSlot=Integer.valueOf(singlePossibleSlot.getSlot().getEndTime())-Integer.valueOf(singlePossibleSlot.getSlot().getStartTime());
-
-                                for (Room possibleSlot:possibleSlots
-                                ) {
-                                    if (singlePossibleSlot.getSlot().getDay() == possibleSlot.getSlot().getDay() && (Math.abs(Integer.valueOf(singlePossibleSlot.getSlot().getEndTime()) - Integer.valueOf(possibleSlot.getSlot().getStartTime()))<timeDurationOfOneSlot || Math.abs((Integer.valueOf(singlePossibleSlot.getSlot().getStartTime()) - Integer.valueOf(possibleSlot.getSlot().getEndTime()))) <timeDurationOfOneSlot )  && singlePossibleSlot.getRoomNo() != possibleSlot.getRoomNo()) {
-
-                                        iterator.remove();
-                                    }
-                                }
-
-
-
-                            }
-                        }
+//                        if(possibleSlots.size()>0) {
+//                            for (Schedule alreadyAllotedSingleSchedule : alreadyAllotedSchedules) {
+//                                int timeDurationOfOneSlot=Integer.valueOf(alreadyAllotedSingleSchedule.getRoom().getSlot().getEndTime())-Integer.valueOf(alreadyAllotedSingleSchedule.getRoom().getSlot().getStartTime());
+//                                for (Iterator<Room> iterator = possibleSlots.iterator(); iterator.hasNext(); ) {
+//                                    Room singlePossibleSlot = iterator.next();
+//
+//                                    if (alreadyAllotedSingleSchedule.getRoom().getSlot().getDay() == singlePossibleSlot.getSlot().getDay() && (Math.abs(Integer.valueOf(alreadyAllotedSingleSchedule.getRoom().getSlot().getEndTime()) - Integer.valueOf(singlePossibleSlot.getSlot().getStartTime()))<timeDurationOfOneSlot || Math.abs((Integer.valueOf(alreadyAllotedSingleSchedule.getRoom().getSlot().getStartTime()) - Integer.valueOf(singlePossibleSlot.getSlot().getEndTime()))) <timeDurationOfOneSlot )  && singlePossibleSlot.getRoomNo() != alreadyAllotedSingleSchedule.getRoom().getRoomNo()) {
+//                                        iterator.remove();
+//                                    }
+//
+//
+//
+//
+//                                }
+//                            }
+//
+//                            for (Iterator<Room> iterator = possibleSlots.iterator(); iterator.hasNext(); ) {
+//                                Room singlePossibleSlot = iterator.next();
+//                                int timeDurationOfOneSlot=Integer.valueOf(singlePossibleSlot.getSlot().getEndTime())-Integer.valueOf(singlePossibleSlot.getSlot().getStartTime());
+//
+//                                for (Room possibleSlot:possibleSlots
+//                                ) {
+//                                    if (singlePossibleSlot.getSlot().getDay() == possibleSlot.getSlot().getDay() && (Math.abs(Integer.valueOf(singlePossibleSlot.getSlot().getEndTime()) - Integer.valueOf(possibleSlot.getSlot().getStartTime()))<timeDurationOfOneSlot || Math.abs((Integer.valueOf(singlePossibleSlot.getSlot().getStartTime()) - Integer.valueOf(possibleSlot.getSlot().getEndTime()))) <timeDurationOfOneSlot )  && singlePossibleSlot.getRoomNo() != possibleSlot.getRoomNo()) {
+//
+//                                        iterator.remove();
+//                                    }
+//                                }
+//
+//
+//
+//                            }
+//                        }
 
                         if (possibleSlots.size() == 2) {
                             singleDaySlotFound = true;
@@ -845,38 +853,38 @@ return;
                     if(taSchedules.get(ta.getName()) != null) {
                         alreadyAllotedSchedules = taSchedules.get(ta.getName());
                     }
-                    if(possibleSlots.size()>0) {
-                        for (Schedule alreadyAllotedSingleSchedule : alreadyAllotedSchedules) {
-                            int timeDurationOfOneSlot=Integer.valueOf(alreadyAllotedSingleSchedule.getRoom().getSlot().getEndTime())-Integer.valueOf(alreadyAllotedSingleSchedule.getRoom().getSlot().getStartTime());
-                            for (Iterator<Room> iterator = possibleSlots.iterator(); iterator.hasNext(); ) {
-                                Room singlePossibleSlot = iterator.next();
-
-                                if (alreadyAllotedSingleSchedule.getRoom().getSlot().getDay() == singlePossibleSlot.getSlot().getDay() && (Math.abs(Integer.valueOf(alreadyAllotedSingleSchedule.getRoom().getSlot().getEndTime()) - Integer.valueOf(singlePossibleSlot.getSlot().getStartTime()))<timeDurationOfOneSlot || Math.abs((Integer.valueOf(alreadyAllotedSingleSchedule.getRoom().getSlot().getStartTime()) - Integer.valueOf(singlePossibleSlot.getSlot().getEndTime()))) <timeDurationOfOneSlot )  && singlePossibleSlot.getRoomNo() != alreadyAllotedSingleSchedule.getRoom().getRoomNo()) {
-                                    iterator.remove();
-                                }
-
-
-
-
-                            }
-                        }
-
-                        for (Iterator<Room> iterator = possibleSlots.iterator(); iterator.hasNext(); ) {
-                            Room singlePossibleSlot = iterator.next();
-                            int timeDurationOfOneSlot=Integer.valueOf(singlePossibleSlot.getSlot().getEndTime())-Integer.valueOf(singlePossibleSlot.getSlot().getStartTime());
-
-                            for (Room possibleSlot:possibleSlots
-                            ) {
-                                if (singlePossibleSlot.getSlot().getDay() == possibleSlot.getSlot().getDay() && (Math.abs(Integer.valueOf(singlePossibleSlot.getSlot().getEndTime()) - Integer.valueOf(possibleSlot.getSlot().getStartTime()))<timeDurationOfOneSlot || Math.abs((Integer.valueOf(singlePossibleSlot.getSlot().getStartTime()) - Integer.valueOf(possibleSlot.getSlot().getEndTime()))) <timeDurationOfOneSlot )  && singlePossibleSlot.getRoomNo() != possibleSlot.getRoomNo()) {
-
-                                    iterator.remove();
-                                }
-                            }
-
-
-
-                        }
-                    }
+//                    if(possibleSlots.size()>0) {
+//                        for (Schedule alreadyAllotedSingleSchedule : alreadyAllotedSchedules) {
+//                            int timeDurationOfOneSlot=Integer.valueOf(alreadyAllotedSingleSchedule.getRoom().getSlot().getEndTime())-Integer.valueOf(alreadyAllotedSingleSchedule.getRoom().getSlot().getStartTime());
+//                            for (Iterator<Room> iterator = possibleSlots.iterator(); iterator.hasNext(); ) {
+//                                Room singlePossibleSlot = iterator.next();
+//
+//                                if (alreadyAllotedSingleSchedule.getRoom().getSlot().getDay() == singlePossibleSlot.getSlot().getDay() && (Math.abs(Integer.valueOf(alreadyAllotedSingleSchedule.getRoom().getSlot().getEndTime()) - Integer.valueOf(singlePossibleSlot.getSlot().getStartTime()))<timeDurationOfOneSlot || Math.abs((Integer.valueOf(alreadyAllotedSingleSchedule.getRoom().getSlot().getStartTime()) - Integer.valueOf(singlePossibleSlot.getSlot().getEndTime()))) <timeDurationOfOneSlot )  && singlePossibleSlot.getRoomNo() != alreadyAllotedSingleSchedule.getRoom().getRoomNo()) {
+//                                    iterator.remove();
+//                                }
+//
+//
+//
+//
+//                            }
+//                        }
+//
+//                        for (Iterator<Room> iterator = possibleSlots.iterator(); iterator.hasNext(); ) {
+//                            Room singlePossibleSlot = iterator.next();
+//                            int timeDurationOfOneSlot=Integer.valueOf(singlePossibleSlot.getSlot().getEndTime())-Integer.valueOf(singlePossibleSlot.getSlot().getStartTime());
+//
+//                            for (Room possibleSlot:possibleSlots
+//                            ) {
+//                                if (singlePossibleSlot.getSlot().getDay() == possibleSlot.getSlot().getDay() && (Math.abs(Integer.valueOf(singlePossibleSlot.getSlot().getEndTime()) - Integer.valueOf(possibleSlot.getSlot().getStartTime()))<timeDurationOfOneSlot || Math.abs((Integer.valueOf(singlePossibleSlot.getSlot().getStartTime()) - Integer.valueOf(possibleSlot.getSlot().getEndTime()))) <timeDurationOfOneSlot )  && singlePossibleSlot.getRoomNo() != possibleSlot.getRoomNo()) {
+//
+//                                    iterator.remove();
+//                                }
+//                            }
+//
+//
+//
+//                        }
+//                    }
 
 
                     for (Room m : possibleSlots) {
@@ -934,77 +942,6 @@ return;
                     if(taSchedules.get(ta.getName()) != null) {
                         alreadyAllotedSchedules = taSchedules.get(ta.getName());
                     }
-//                    if(possibleSlots.size()>0) {
-//                        for (Schedule alreadyAllotedSingleSchedule : alreadyAllotedSchedules) {
-//                            int timeDurationOfOneSlot=Integer.valueOf(alreadyAllotedSingleSchedule.getRoom().getSlot().getEndTime())-Integer.valueOf(alreadyAllotedSingleSchedule.getRoom().getSlot().getStartTime());
-//                            for (Iterator<Room> iterator = possibleSlots.iterator(); iterator.hasNext(); ) {
-//                                Room singlePossibleSlot = iterator.next();
-//
-//                                if (alreadyAllotedSingleSchedule.getRoom().getSlot().getDay() == singlePossibleSlot.getSlot().getDay() && (Math.abs(Integer.valueOf(alreadyAllotedSingleSchedule.getRoom().getSlot().getEndTime()) - Integer.valueOf(singlePossibleSlot.getSlot().getStartTime()))<timeDurationOfOneSlot || Math.abs((Integer.valueOf(alreadyAllotedSingleSchedule.getRoom().getSlot().getStartTime()) - Integer.valueOf(singlePossibleSlot.getSlot().getEndTime()))) <timeDurationOfOneSlot )  && singlePossibleSlot.getRoomNo() != alreadyAllotedSingleSchedule.getRoom().getRoomNo()) {
-//                                    iterator.remove();
-//                                }
-//
-//
-//
-//
-//                            }
-//                        }
-//
-//                        for (Iterator<Room> iterator = possibleSlots.iterator(); iterator.hasNext(); ) {
-//                            Room singlePossibleSlot = iterator.next();
-//                            int timeDurationOfOneSlot=Integer.valueOf(singlePossibleSlot.getSlot().getEndTime())-Integer.valueOf(singlePossibleSlot.getSlot().getStartTime());
-//
-//                            for (Room possibleSlot:possibleSlots
-//                            ) {
-//                                if (singlePossibleSlot.getSlot().getDay() == possibleSlot.getSlot().getDay() && (Math.abs(Integer.valueOf(singlePossibleSlot.getSlot().getEndTime()) - Integer.valueOf(possibleSlot.getSlot().getStartTime()))<timeDurationOfOneSlot || Math.abs((Integer.valueOf(singlePossibleSlot.getSlot().getStartTime()) - Integer.valueOf(possibleSlot.getSlot().getEndTime()))) <timeDurationOfOneSlot )  && singlePossibleSlot.getRoomNo() != possibleSlot.getRoomNo()) {
-//
-//                                    iterator.remove();
-//                                }
-//                            }
-//
-//
-//
-//                        }
-//                    }
-
-
-//
-//                        if(possibleSlots.size()>0) {
-//                            for (Schedule alreadyAllotedSingleSchedule : alreadyAllotedSchedules) {
-//
-//                                for (Iterator<Room> iterator = possibleSlots.iterator(); iterator.hasNext(); ) {
-//                                    Room singlePossibleSlot = iterator.next();
-//
-//                                    if (alreadyAllotedSingleSchedule.getRoom().getSlot().getDay() == singlePossibleSlot.getSlot().getDay() && (alreadyAllotedSingleSchedule.getRoom().getSlot().getEndTime() == singlePossibleSlot.getSlot().getStartTime() || alreadyAllotedSingleSchedule.getRoom().getSlot().getStartTime() == singlePossibleSlot.getSlot().getEndTime()) && singlePossibleSlot.getRoomNo() != alreadyAllotedSingleSchedule.getRoom().getRoomNo()) {
-//                                        iterator.remove();
-//                                    }
-//
-//                                }
-//                            }
-//                            List<Room> slotsToRemove=new ArrayList<>();
-//
-//                            for (Iterator<Room> iterator = possibleSlots.iterator(); iterator.hasNext(); ) {
-//                                Room singlePossibleSlot = iterator.next();
-//
-//                                for (Room possibleSlot:possibleSlots
-//                                     ) {
-//                                    System.out.println(singlePossibleSlot.getSlot().getDay()==possibleSlot.getSlot().getDay());
-//                                    System.out.println(singlePossibleSlot.getRoomNo()!=possibleSlot.getRoomNo());
-//                                    System.out.println(singlePossibleSlot.getSlot().getStartTime().equals(possibleSlot.getSlot().getEndTime()));
-//                                    System.out.println(singlePossibleSlot.getSlot().getEndTime().equals(possibleSlot.getSlot().getStartTime()));
-//                                    if(singlePossibleSlot.getSlot().getDay()==possibleSlot.getSlot().getDay()&&singlePossibleSlot.getRoomNo()!=possibleSlot.getRoomNo()&&(singlePossibleSlot.getSlot().getStartTime().equals(possibleSlot.getSlot().getEndTime())||singlePossibleSlot.getSlot().getEndTime().equals(possibleSlot.getSlot().getStartTime())))
-//                                    {
-//                                        slotsToRemove.add(singlePossibleSlot);
-//                                       // iterator.remove();
-//                                    }
-//                                }
-//
-//
-//
-//                            }
-//                            possibleSlots.removeAll(slotsToRemove);
-//                        }
-
 
                     for (Room m : possibleSlots) {
 
@@ -1042,43 +979,53 @@ return;
         }
         int count = 1;
         List<Room> possibleSlots = new ArrayList<>();
-        Room previousSlot = new Room();
+        Room firstSlot = new Room();
+        Room secondSlot=new Room();
         //sort availableSlots on startTime and day
         Collections.sort(availableSlots);
         for(Room r: availableSlots) {
-            boolean areSlotsAllotedForSameDayInDifferentRoom=false;
-            for(Room possibleSingleSlot:possibleSlots){
-                if(r.getRoomNo()!=possibleSingleSlot.getRoomNo() && r.getSlot().getDay()==possibleSingleSlot.getSlot().getDay())
-                {
-                    areSlotsAllotedForSameDayInDifferentRoom=true;
-                    break;
-                }
-            }
-            if(areSlotsAllotedForSameDayInDifferentRoom)
-                continue;
+//            boolean areSlotsAllotedForSameDayInDifferentRoom=false;
+//            for(Room possibleSingleSlot:possibleSlots){
+//                if(r.getRoomNo()!=possibleSingleSlot.getRoomNo() && r.getSlot().getDay()==possibleSingleSlot.getSlot().getDay())
+//                {
+//                    areSlotsAllotedForSameDayInDifferentRoom=true;
+//                    break;
+//                }
+//            }
+//            if(areSlotsAllotedForSameDayInDifferentRoom)
+//                continue;
             if(count<=hours) {
                 if (possibleSlots.size() == 0) {
                     possibleSlots.add(r);
-                    this.setPreviousSlot(previousSlot, r);
+                    this.setPreviousSlot(firstSlot, r);
                     count++;
-                } else {
+                }
+                else if (possibleSlots.size() == 1) {
+                    this.setPreviousSlot(secondSlot,possibleSlots.get(0));
+
+                    possibleSlots.add(r);
+
+                    this.setPreviousSlot(firstSlot, r);
+                    count++;
+                }
+                else {
                     if (count == 3) {
-                        if (this.lessThanOrEqual(r,previousSlot,false)) {
-                            continue;
-                        }if (this.lessThanOrEqual(r,previousSlot,true)) {
-                            continue;
-                        }
+                        if(this.lessThanOrEqual(r,secondSlot,false) && this.lessThanOrEqual(secondSlot,firstSlot,false))
+                        {continue;}
+                        else   if(this.lessThanOrEqual(r,firstSlot,false) && this.lessThanOrEqual(firstSlot,secondSlot,false))
+                        {continue;}
+
                         else {
                             possibleSlots.add(r);
-                            this.setPreviousSlot(previousSlot, r);
+                            this.setPreviousSlot(firstSlot, r);
                             count++;
                         }
                     } else {
-                        if (this.lessThanOrEqual(r,previousSlot,true)) {
+                        if (this.lessThanOrEqual(r,firstSlot,true)) {
                             continue;
                         } else {
                             possibleSlots.add(r);
-                            this.setPreviousSlot(previousSlot, r);
+                            this.setPreviousSlot(firstSlot, r);
                             count++;
                         }
                     }
@@ -1102,22 +1049,23 @@ return;
         //sort availableSlots on startTime and day
         Collections.sort(availableSlots);
         for(Room r: availableSlots) {
-            boolean areSlotsAllotedForSameDayInDifferentRoom=false;
-            for(Room possibleSingleSlot:possibleSlots){
-                if(r.getRoomNo()!=possibleSingleSlot.getRoomNo() && r.getSlot().getDay()==possibleSingleSlot.getSlot().getDay())
-                {
-                    areSlotsAllotedForSameDayInDifferentRoom=true;
-                    break;
-                }
-            }
-            if(areSlotsAllotedForSameDayInDifferentRoom)
-                continue;
+//            boolean areSlotsAllotedForSameDayInDifferentRoom=false;
+//            for(Room possibleSingleSlot:possibleSlots){
+//                if(r.getRoomNo()!=possibleSingleSlot.getRoomNo() && r.getSlot().getDay()==possibleSingleSlot.getSlot().getDay())
+//                {
+//                    areSlotsAllotedForSameDayInDifferentRoom=true;
+//                    break;
+//                }
+//            }
+//            if(areSlotsAllotedForSameDayInDifferentRoom)
+//                continue;
             if(count<=hours && count<3) {
                 if (possibleSlots.size() == 0) {
                     possibleSlots.add(r);
                     count++;
                     this.setPreviousSlot(previousSlot, r);
-                } else {
+                }
+                else {
                     if (this.lessThanOrEqual(r,previousSlot,true)) {
                         continue;
                     } else {
@@ -1147,16 +1095,18 @@ return;
         Map<Integer,Integer> daysBooked = new HashMap<>();
         this.getDaysBookedForTA(daysBooked, taName);
         for(Room r: availableSlots) {
-            boolean areSlotsAllotedForSameDayInDifferentRoom=false;
-            for(Room possibleSingleSlot:possibleSlots){
-                if(r.getRoomNo()!=possibleSingleSlot.getRoomNo() && r.getSlot().getDay()==possibleSingleSlot.getSlot().getDay())
-                {
-                    areSlotsAllotedForSameDayInDifferentRoom=true;
-                    break;
-                }
-            }
-            if(areSlotsAllotedForSameDayInDifferentRoom)
-                continue;
+//            boolean areSlotsAllotedForSameDayInDifferentRoom=false;
+//            for(Room possibleSingleSlot:possibleSlots){
+//                int timeSlotDuration=Math.abs(Integer.valueOf(r.getSlot().getEndTime())- Integer.valueOf((r.getSlot().getStartTime())));
+//
+//                if(r.getRoomNo()!=possibleSingleSlot.getRoomNo() && r.getSlot().getDay()==possibleSingleSlot.getSlot().getDay() && (Math.abs(Integer.valueOf(r.getSlot().getEndTime())- Integer.valueOf((possibleSingleSlot.getSlot().getStartTime()))) <timeSlotDuration||Math.abs(Integer.valueOf(possibleSingleSlot.getSlot().getEndTime())- Integer.valueOf((r.getSlot().getStartTime())))<timeSlotDuration))
+//                {
+//                    areSlotsAllotedForSameDayInDifferentRoom=true;
+//                    break;
+//                }
+//            }
+//            if(areSlotsAllotedForSameDayInDifferentRoom)
+//                continue;
             if(count<=hours && taSlotMap.get(taName+"_"+r.getSlot().getDay()+"_"+r.getSlot().getStartTime()) == null && daysBooked.getOrDefault(r.getSlot().getDay(),0) < 2) {
                 if (possibleSlots.size() == 0) {
                     possibleSlots.add(r);
@@ -1199,7 +1149,9 @@ return;
         if(r1.getSlot().getDay() != r2.getSlot().getDay()) {
             return false;
         }
-        if ((Integer.valueOf(r1.getSlot().getStartTime()) == Integer.valueOf((r2.getSlot().getStartTime())))) {
+        if (Integer.valueOf(r1.getSlot().getStartTime()) == Integer.valueOf(r2.getSlot().getStartTime())) {
+            System.out.println(Integer.valueOf(r1.getSlot().getStartTime()));
+            System.out.println(Integer.valueOf(r2.getSlot().getStartTime()));
             return true;
         }
 
@@ -1209,10 +1161,10 @@ return;
         if ((Integer.valueOf(r1.getSlot().getStartTime()) - Integer.valueOf((r2.getSlot().getEndTime())) < timeSlotDuration)) {
             return true;
         }
-        if ((Integer.valueOf(r2.getSlot().getStartTime()) - Integer.valueOf((r1.getSlot().getEndTime())) < timeSlotDuration)) {
+        if (Math.abs(Integer.valueOf(r2.getSlot().getStartTime()) - Integer.valueOf((r1.getSlot().getEndTime()))) < timeSlotDuration) {
             return true;
         }
-        if ((Integer.valueOf(r2.getSlot().getStartTime()) - Integer.valueOf((r1.getSlot().getStartTime())) < timeSlotDuration)) {
+        if (Math.abs(Integer.valueOf(r2.getSlot().getStartTime()) - Integer.valueOf((r1.getSlot().getStartTime()))) < timeSlotDuration) {
             return true;
         }
 //        if (startTime && (Integer.valueOf(r1.getSlot().getStartTime()) - Integer.valueOf((r2.getSlot().getStartTime())) < timeSlotDuration)) {
@@ -1228,6 +1180,7 @@ return;
         r1.setSlot(r2.getSlot());
         r1.setRoomNo(r2.getRoomNo());
     }
+
 
     private Boolean isSlotInTAPref(Slot s1, List<Slot> s2) {
         for(Slot s: s2) {
