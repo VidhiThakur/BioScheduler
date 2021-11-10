@@ -22,18 +22,21 @@ public class SchedularService {
     private Map<String, Integer> taScheduleCount = new HashMap<>();
     private Map<String,List<Schedule>> taSchedules = new HashMap<>();
     private ArrayList<String> timeSlotSortedArr=new ArrayList<>();
+private InputParametersForAlgorithm inputParametersForAlgorithm=new InputParametersForAlgorithm();
 
 
     public void createSchedule() throws IOException {
         this.clear();
         Input utils=new Input();
-        utils.initialiseData(taList, roomList, dayRoomSlotMap, roomsNameList,timeSlotSortedArr);
+        utils.initialiseData(taList, roomList, dayRoomSlotMap, roomsNameList,timeSlotSortedArr,inputParametersForAlgorithm);
         if(!checkIfScheduleIsFeasible(taList,dayRoomSlotMap))
         {
             System.out.println("A schedule is not feasible because ta's are less than the slots");
             return;
         }
 
+        System.out.println(inputParametersForAlgorithm.getNoOfIterations());
+        System.out.println(inputParametersForAlgorithm.getSlotReplacementCount());
         //comment - sorted taList on pref + avail count low -> high (so that ta with less options get slots first)
         Collections.sort(taList);
         this.createScheduleWithPrefForSingleDay();
@@ -48,7 +51,7 @@ public class SchedularService {
 
         if(!checkIfScheduleIsComplete()){
 
-            for(int i=0;i<80;i++) {
+            for(int i=0;i< inputParametersForAlgorithm.getNoOfIterations();i++) {
                 completeAndPrint();
             }
             //do something
@@ -149,7 +152,7 @@ public class SchedularService {
 
 
                                             int slotReplacedCount = s.getRoom().getSlot().getAlreadyReplaced() != null ? s.getRoom().getSlot().getAlreadyReplaced() : 0;
-                                            if (slotReplacedCount > 6) {
+                                            if (slotReplacedCount > inputParametersForAlgorithm.getSlotReplacementCount()) {
                                                 continue;
                                             }
                                             s.getRoom().getSlot().setAlreadyReplaced(slotReplacedCount + 1);
@@ -221,7 +224,7 @@ public class SchedularService {
 
                                                 //comment - added alreadyReplaced counter in slot
                                                 int slotReplacedCount = s.getRoom().getSlot().getAlreadyReplaced() != null?s.getRoom().getSlot().getAlreadyReplaced():0;
-                                                if(slotReplacedCount > 6) {
+                                                if(slotReplacedCount > inputParametersForAlgorithm.getSlotReplacementCount()) {
                                                     continue;
                                                 }
 
@@ -346,7 +349,7 @@ public class SchedularService {
 //                                        }
 
                                         int slotReplacedCount = s.getRoom().getSlot().getAlreadyReplaced() != null ? s.getRoom().getSlot().getAlreadyReplaced() : 0;
-                                        if (slotReplacedCount > 6) {
+                                        if (slotReplacedCount > inputParametersForAlgorithm.getSlotReplacementCount()) {
                                             continue;
                                         }
                                         s.getRoom().getSlot().setAlreadyReplaced(slotReplacedCount + 1);
@@ -436,7 +439,7 @@ public class SchedularService {
 
                                             //comment - added alreadyReplaced counter in slot
                                             int slotReplacedCount = s.getRoom().getSlot().getAlreadyReplaced() != null ? s.getRoom().getSlot().getAlreadyReplaced() : 0;
-                                            if (slotReplacedCount > 6) {
+                                            if (slotReplacedCount > inputParametersForAlgorithm.getSlotReplacementCount()) {
                                                 continue;
                                             }
 

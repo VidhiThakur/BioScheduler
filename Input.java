@@ -14,7 +14,7 @@ import java.util.*;
 
 public class Input {
 
-    public void initialiseData(List<TeachingAssistant> taList, List<Room> roomList, Map<String, List<Room>> dayRoomSlotMap, List<String> roomsNameList,ArrayList<String> timeSlotsSortedArr) throws IOException {
+    public void initialiseData(List<TeachingAssistant> taList, List<Room> roomList, Map<String, List<Room>> dayRoomSlotMap, List<String> roomsNameList,ArrayList<String> timeSlotsSortedArr,InputParametersForAlgorithm inputParametersForAlgorithm) throws IOException {
 
         File file = new File("/home/vidhi/IdeaProjects/BioScheduler/src/Input.xlsx");   //creating a new file instance
         FileInputStream fis = null;   //obtaining bytes from the file
@@ -58,6 +58,12 @@ public class Input {
 
                 }
 
+            }
+            if("NumberOfIterations".equals(dataFormatter.formatCellValue(firstCell))){
+                inputParametersForAlgorithm.setNoOfIterations(Integer.valueOf(dataFormatter.formatCellValue(row.getCell(1))));
+            }
+            if("SlotReplacementCount".equals(dataFormatter.formatCellValue(firstCell))){
+                inputParametersForAlgorithm.setSlotReplacementCount(Integer.valueOf(dataFormatter.formatCellValue(row.getCell(1))));
             }
         }
 
