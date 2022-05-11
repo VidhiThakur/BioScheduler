@@ -35,30 +35,37 @@ public class SchedularService {
             return;
         }
 
-        System.out.println(inputParametersForAlgorithm.getNoOfIterations());
-        System.out.println(inputParametersForAlgorithm.getSlotReplacementCount());
-        //comment - sorted taList on pref + avail count low -> high (so that ta with less options get slots first)
+        //comment - sorted taList on pref + avail count low -> high (so that ta with less options of slots get slots first)
         Collections.sort(taList);
+        // create schedule for TA who said that they will be teaching all three classes in single day
         this.createScheduleWithPrefForSingleDay();
+        //create schedule for other TA's for giving them two classes in one day.
         this.createScheduleWithPrefFor2InSingleDay();
+        //Create schedule for TA's without giving classes in one single day
         this.createScheduleForMultipleDays(null);
         int total = 0;
+
+        //For debugging - to display logs on the console.
         for (Map.Entry<String, List<Schedule>> entry : taSchedules.entrySet()) {
             total += entry.getValue().size();
             System.out.println( entry.getValue().get(0).getTeachingAssistant().getName()  + "<==>" + entry.getValue().size());
         }
         System.out.println("Total schedules created: " + total);
 
+        /*
+        If the schedule could not be completed before, try again now by swapping slots amongst the instructors
+         */
+
         if(!checkIfScheduleIsComplete()){
 
             for(int i=0;i< inputParametersForAlgorithm.getNoOfIterations();i++) {
                 completeAndPrint();
             }
-            //do something
         }
         completeAndPrint();
+
+        //Transfer the schedule to the output file outpul.xlsx
         printScheduleToExcel(taSchedules);
-        System.out.println(taSchedules.toString());
 
         total = 0;
         for (Map.Entry<String, List<Schedule>> entry : taSchedules.entrySet()) {
@@ -71,7 +78,7 @@ public class SchedularService {
 
     private void completeAndPrint() {
 
-
+        //try to complete a schedule by taking some TA's slot and giving it to a person who does not have any slot till now
         completeSchedule();
         completeScheduleForTANotCoveredTillNow();
         int total = 0;
@@ -110,8 +117,7 @@ public class SchedularService {
                                         else {
                                             if (e.getValue().get(0).getTeachingAssistant().getDontChangeTheSchedule()
                                                     || e.getValue().size() == 1
-                                                //|| e.getValue().get(0).getTeachingAssistant().getAreClassesAllotedInSingleDay()
-                                            ) //e.getValue().get(i).getTeachingAssistant().getAreClassesAllotedInSingleDay())
+                                              )
                                                 continue;
                                             Schedule s = new Schedule();
                                             s = e.getValue().get(i);
@@ -120,7 +126,7 @@ public class SchedularService {
                                             if(taSlotMap.get(entry.getValue().get(0).getTeachingAssistant().getName()+"_"+s.getRoom().getSlot().getDay()+"_"+s.getRoom().getSlot().getStartTime()) != null){
                                                 continue;
                                             }
-
+                                            //If this slot has been replaced already for many times, that means it's moving around in circles.
                                             int slotReplacedCount = s.getRoom().getSlot().getAlreadyReplaced() != null ? s.getRoom().getSlot().getAlreadyReplaced() : 0;
                                             if (slotReplacedCount > inputParametersForAlgorithm.getSlotReplacementCount()) {
                                                 continue;
@@ -187,10 +193,6 @@ public class SchedularService {
                                                     continue;
                                                 }
 
-//                                                if(checkIfSameDayConsecutiveSlotAsssignedInDifferentRoom(entry.getValue(),s))
-//                                                    continue;
-//
-
                                                 //comment - added alreadyReplaced counter in slot
                                                 int slotReplacedCount = s.getRoom().getSlot().getAlreadyReplaced() != null?s.getRoom().getSlot().getAlreadyReplaced():0;
                                                 if(slotReplacedCount > inputParametersForAlgorithm.getSlotReplacementCount()) {
@@ -229,10 +231,12 @@ public class SchedularService {
                                             }
                                         }
                                     }
+                                //Create the schedule for the person whose slot we snatched
                                 createScheduleForMultipleDays(entry.getValue().get(0).getTeachingAssistant().getName());
                             }
                         }
                     }
+                    //If we are unable to allocate the desired number of slots to the TA, display the message that the schedule is not feasible
                     if(allotedSlots<entry.getValue().get(0).getTeachingAssistant().getTAHours()){
                         createScheduleForMultipleDays(entry.getValue().get(0).getTeachingAssistant().getName());
                         System.out.println("Schedule is not feasible as classes cant be given to "+entry.getValue().get(0).getTeachingAssistant().getName());
@@ -579,9 +583,7 @@ public class SchedularService {
             try {
                 countOfTaHours += ta.getTAHours();
             }catch (Throwable e){
-                System.out.println("vidhi");
                 e.printStackTrace();
-                System.out.println(e.toString());
             }
         }
         Integer countOfRoomSlots=0;
@@ -727,9 +729,9 @@ public class SchedularService {
                     List<Room> possibleSlots = new ArrayList<>();
                     List<Room> dayslots = new ArrayList<>();
                     for (int i = 1; i <= 5; i++) {
-                        if (i == 1 && !ta.getMondayAvailable()) {
-                            continue;
-                        }
+//                        if (i == 1 && !ta.getMondayAvailable()) {
+//                            continue;
+//                        }
                         dayslots.addAll(this.getAvailableSlotsForDay(i));
                     }
 

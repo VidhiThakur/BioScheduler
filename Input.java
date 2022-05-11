@@ -15,7 +15,7 @@ import java.util.*;
 public class Input {
 
     public void initialiseData(List<TeachingAssistant> taList, List<Room> roomList, Map<String, List<Room>> dayRoomSlotMap, List<String> roomsNameList,ArrayList<String> timeSlotsSortedArr,InputParametersForAlgorithm inputParametersForAlgorithm) throws IOException {
-
+        //CHANGE FILEPATH ACCORDINGLY
         File file = new File("/home/vidhi/IdeaProjects/BioScheduler/src/Input.xlsx");   //creating a new file instance
         FileInputStream fis = null;   //obtaining bytes from the file
         try {
@@ -125,7 +125,7 @@ public class Input {
                 break;
             String instructor=dataFormatter.formatCellValue(sheet4.getRow(index).getCell(0));
             if(instructor.isEmpty()||instructor=="")
-                 break;
+                break;
             ta.setName(dataFormatter.formatCellValue(sheet4.getRow(index).getCell(0)));
 
             index++;
